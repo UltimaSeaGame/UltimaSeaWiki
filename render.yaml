@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: roblox-game-wiki
+    env: node
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: MONGO_URI
+        fromDatabase:
+          name: roblox-wiki-db
+          property: connectionString
+      - key: JWT_SECRET
+        generateValue: true
+
+databases:
+  - name: roblox-wiki-db
+    databaseName: roblox_wiki
+    user: wiki_admin

@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Roblox Game Wiki</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-900 text-white min-h-screen">
+  <!-- Navbar -->
+  <nav class="bg-slate-800 p-4 border-b border-slate-700 flex justify-between items-center px-8">
+    <h1 class="text-2xl font-bold text-red-500">🎮 Roblox Wiki</h1>
+    <div id="nav-user">
+      <a href="/login.html" class="bg-red-600 hover:bg-red-700 px-4 py-2 rounded font-semibold">ลงชื่อเข้าใช้</a>
+    </div>
+  </nav>
+
+  <!-- Search & Content Section -->
+  <main class="max-w-4xl mx-auto mt-10 p-4">
+    <div class="text-center mb-8">
+      <h2 class="text-3xl font-extrabold mb-2">ยินดีต้อนรับสู่ Roblox Game Wiki</h2>
+      <p class="text-slate-400">ค้นหาไอเทม ตัวละคร สกิล และคู่มือเกมที่คุณต้องการ</p>
+      
+      <div class="mt-6 flex justify-center">
+        <input type="text" id="search-input" placeholder="ค้นหาบทความ, ไอเทม, สกิล..." 
+               class="w-full max-w-lg p-3 rounded-l-lg bg-slate-800 border border-slate-700 focus:outline-none focus:border-red-500">
+        <button onclick="searchArticles()" class="bg-red-600 hover:bg-red-700 px-6 py-3 rounded-r-lg font-semibold">ค้นหา</button>
+      </div>
+    </div>
+
+    <!-- Article List -->
+    <div id="articles-container" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <!-- ข้อมูลจะถูกโหลดจาก API -->
+    </div>
+  </main>
+
+  <script>
+    // ตรวจสอบสถานะการเข้าสู่ระบบ
+    const user = JSON.parse(localStorage.getItem('user'));
+    if (user) {
+      document.getElementById('nav-user').innerHTML = `
+        <span class="mr-4 text-slate-300">👤 ${user.username} (${user.role})</span>
+        ${['Admin', 'Owner', 'Editor'].includes(user.role) ? '<a href="/admin.html" class="mr-4 bg-slate-700 hover:bg-slate-600 px-3 py-1.5 rounded">Admin Dashboard</a>' : ''}
+        <button onclick="logout()" class="bg-gray-700 hover:bg-gray-600 px-3 py-1.5 rounded">ออกจากระบบ</button>
+      `;
+    }
+
+    function logout() {
+      localStorage.clear();
+      window.location.reload();
+    }
+
+    async function searchArticles() {
+      const q = document.getElementById('search-input').value;
+      const res = await fetch(`/api/articles?q=${encodeURIComponent(q)}`);
+      const articles = await res.json();
+      
+      const container = document.getElementById('articles-container');
+      container.innerHTML = '';
+
+      if(articles.length === 0) {
+        container.innerHTML = '<p class="text-slate-400 text-center col-span-2">ไม่พบข้อมูลที่ค้นหา</p>';
+        return;
+      }
+
+      articles.forEach(art => {
+        const item = document.createElement('div');
+        item.className = 'bg-slate-800 p-5 rounded-lg border border-slate-700 shadow';
+        item.innerHTML = `
+          <div class="flex justify-between items-start">
+            <h3 class="text-xl font-bold text-red-400">${art.title}</h3>
+            <span class="text-xs px-2 py-1 bg-slate-700 rounded text-slate-300">${art.rarity}</span>
+          </div>
+          <span class="inline-block mt-1 text-xs text-slate-400 uppercase tracking-wide">${art.category}</span>
+          <p class="mt-3 text-slate-300 text-sm line-clamp-3">${art.content}</p>
+        `;
+        container.appendChild(item);
+      });
+    }
+
+    // โหลดบทความทั้งหมดเมื่อเปิดหน้าเว็บครั้งแรก
+    searchArticles();
+  </script>
+</body>
+</html>
